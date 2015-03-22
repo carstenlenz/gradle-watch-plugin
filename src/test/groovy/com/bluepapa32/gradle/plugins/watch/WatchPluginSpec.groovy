@@ -39,4 +39,24 @@ class WatchPluginSpec extends GradlePluginSpecification {
         tasks.findByPath('watchTest') == null
         tasks.findByPath('watchHoge') == null
     }
+
+    def "configure additional task"() {
+        setup:
+        apply plugin: 'com.bluepapa32.watch'
+
+        when:
+        task('watchTest', type:WatchTask) {
+            watch {
+                tests {
+                    files fileTree(dir: '/src/test/java', include: '**.java')
+                    tasks 'hui', 'buh'
+                }
+            }
+        }
+
+        then:
+        tasks['watchTest'] instanceof WatchTask
+        tasks['watchTest'].targets.size() == 1
+        tasks['watchTest'].targets['tests'] instanceof WatchTarget
+    }
 }

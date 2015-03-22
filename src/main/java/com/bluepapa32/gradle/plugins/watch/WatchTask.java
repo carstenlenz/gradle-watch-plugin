@@ -14,7 +14,9 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import groovy.lang.Closure;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.tasks.TaskAction;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
@@ -24,7 +26,7 @@ import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 
 public class WatchTask extends DefaultTask {
 
-    private Collection<WatchTarget> targets;
+    private NamedDomainObjectContainer<WatchTarget> targets;
     private Path projectPath;
 
     public WatchTask() {
@@ -35,14 +37,25 @@ public class WatchTask extends DefaultTask {
         return targets;
     }
 
-    public void watch(Collection<WatchTarget> targets) {
+    public void watch(NamedDomainObjectContainer<WatchTarget> targets) {
         this.targets = targets;
+    }
+
+    public void watch(Closure closure) {
+        ensureExistingWatchTargetContainer();
+        targets.configure(closure);
+    }
+
+    private void ensureExistingWatchTargetContainer() {
+        if (targets == null) {
+            targets = getProject().container(WatchTarget.class);
+        }
     }
 
     @TaskAction
     public void watch() throws IOException {
 
-        if (targets == null || targets.isEmpty()) {
+        if (targets.isEmpty()) {
             return;
         }
 
